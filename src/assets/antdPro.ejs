@@ -1,0 +1,83 @@
+import { EllipsisOutlined, PlusOutlined } from '@ant-design/icons';
+import type { ActionType, ProColumns } from '@ant-design/pro-components';
+import { ProTable, TableDropdown } from '@ant-design/pro-components';
+import { Button, Dropdown, Space, Tag } from 'antd';
+import { useRef } from 'react';
+import request from 'umi-request';
+
+type TableItem = {
+<% if(plugin.get('type')){ -%>
+<% plugin.get('type').forEach((item) => { -%>
+    <%= item.name %>:<%= item.type %>
+<%})-%>
+<% }-%>
+};
+
+const columns: ProColumns<TableItem>[] = [
+<% if(plugin.get('field')){ -%>
+<% plugin.get('field').forEach((item) => { -%>
+    {
+        title: '<%= item.title %>',
+        dataIndex: '<%= item.dataIndex %>',
+    },
+<%})-%>
+<% }-%>
+];
+
+export default () => {
+    const actionRef = useRef<ActionType>();
+    
+    return (
+        <ProTable<TableItem>
+            columns={columns}
+            actionRef={actionRef}
+            cardBordered
+            request={async (params, sort, filter) => {
+                console.log(sort, filter);
+                return request<{
+                    data: TableItem[];
+                }>('/api/demo/GetQuery', {
+                    params,
+                });
+            }}
+            editable={{
+                type: 'multiple',
+            }}
+            columnsState={{
+                persistenceKey: 'pro-table-singe-demos',
+                persistenceType: 'localStorage',
+                defaultValue: {
+                    option: { fixed: 'right', disable: true },
+                },
+            }}
+            rowKey="id"
+            search={{
+                labelWidth: 'auto',
+            }}
+            options={{
+                setting: {
+                    listsHeight: 400,
+                },
+            }}
+            pagination={{
+                pageSize: 5,
+                onChange: (page) => console.log(page),
+            }}
+            dateFormatter="string"
+            headerTitle="高级表格"
+            toolBarRender={() => [
+                <Button
+                    key="button"
+                    icon={<PlusOutlined />
+                    }
+                    onClick={() => {
+                        actionRef.current?.reload();
+                    }}
+                    type="primary"
+                >
+                    新建
+                </Button>,
+            ]}
+        />
+    );
+};
